@@ -1,0 +1,28 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Vue3 Debug - Chrome",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/xiaobei-frontend",
+      // "breakOnLoad": true,
+      "sourceMapPathOverrides": {
+        "webpack:///./src/*": "${workspaceFolder}/xiaobei-frontend/src/*",
+        "webpack:///src/*": "${workspaceFolder}/xiaobei-frontend/src/*",
+        "./*": "${workspaceFolder}/xiaobei-frontend/*",
+        "/src/*": "${workspaceFolder}/xiaobei-frontend/src/*"
+      }
+    },
+    {
+      "name": "Python",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/xiaobei-backend/main.py",
+      "console": "integratedTerminal",
+      "python": "${workspaceFolder}/xiaobei-backend/.venv/Scripts/python.exe",
+      "cwd": "${workspaceFolder}/xiaobei-backend"
+    }
+  ]
+}

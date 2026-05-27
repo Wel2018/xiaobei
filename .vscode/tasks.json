@@ -1,0 +1,62 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "npm",
+      "script": "dev",
+      "problemMatcher": "$tsc-watch",
+      "label": "npm: dev",
+      "detail": "vite",
+      "isBackground": true,
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "options": {
+        "cwd": "${workspaceFolder}/xiaobei-frontend"
+      }
+    },
+    {
+      "type": "npm",
+      "script": "build",
+      "problemMatcher": [],
+      "label": "npm: build",
+      "detail": "vue-tsc -b && vite build",
+      "options": {
+        "cwd": "${workspaceFolder}/xiaobei-frontend"
+      }
+    },
+    {
+      "type": "npm",
+      "script": "preview",
+      "problemMatcher": [],
+      "label": "npm: preview",
+      "detail": "vite preview",
+      "options": {
+        "cwd": "${workspaceFolder}/xiaobei-frontend"
+      }
+    },
+    // {
+    //   "label": "uv-run-backend",
+    //   "type": "shell",
+    //   "command": "uv run python main.py",
+    //   "options": {
+    //     "cwd": "${workspaceFolder}/xiaobei-backend"
+    //   },
+    //   "isBackground": true,
+    //   "problemMatcher": {
+    //     "pattern": {
+    //       "regexp": "^.*$",
+    //       "file": 1,
+    //       "location": 2,
+    //       "message": 3
+    //     },
+    //     "background": {
+    //       "activeOnStart": true,
+    //       "beginsPattern": ".*",
+    //       "endsPattern": ".*"
+    //     }
+    //   }
+    // }
+  ]
+}
