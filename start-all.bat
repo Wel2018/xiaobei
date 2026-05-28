@@ -19,35 +19,29 @@ echo.
 echo ========================================
 echo 启动主服务 (端口 8000)...
 echo ========================================
-start "主服务" cmd /k "cd xiaobei-backend && uv run python main.py"
-@REM timeout /t 3 /nobreak >nul
+start "小北机器人 - 主服务" cmd /k "cd xiaobei-backend && uv run python main.py"
+
+timeout /t 3 /nobreak >nul
+
 
 echo.
 echo ========================================
 echo 启动流媒体服务 mediamtx
 echo ========================================
-start "流媒体服务" cmd /k "cd xiaobei-ext/runtime/mediamtx && mediamtx.exe"
+start "小北机器人 - 流媒体服务" cmd /k "cd xiaobei-ext/runtime/mediamtx && mediamtx.exe"
 
 echo.
 echo ========================================
 echo 启动扩展服务 (端口 8001)...
 echo ========================================
-start "扩展服务" cmd /k "cd xiaobei-ext && uv run python main.py"
+start "小北机器人 - 扩展服务" cmd /k "cd xiaobei-ext && uv run python main.py"
 
 
 echo.
 echo ========================================
 echo 启动界面服务 (端口 5173)...
 echo ========================================
-start "界面服务" cmd /k "cd xiaobei-frontend && pnpm dev"
-
-
-echo.
-echo ========================================
-echo 启动 WebApp...
-echo ========================================
-@REM start "WebApp" cmd /k "cd xiaobei-backend && uv run python webapp.py"
-
+start "小北机器人 - 界面服务" cmd /k "cd xiaobei-frontend && pnpm dev"
 
 echo.
 echo ========================================

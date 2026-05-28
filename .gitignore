@@ -6,6 +6,8 @@
 # 子项目
 xiaobei-*/**
 
+env/**
+
 # 排除目录
 alembic/versions
 
