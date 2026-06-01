@@ -5,6 +5,9 @@
     // ],
     "python.analysis.extraPaths": [
         "D:\\wk\\Codehub\\0\\xiaobei\\xiaobei-backend\\dist\\slamtech_client",
-        "D:\\wk\\Codehub\\0\\xiaobei\\xiaobei-backend\\dist\\backend_client"
-    ]
+        "D:\\wk\\Codehub\\0\\xiaobei\\xiaobei-backend\\dist\\backend_client",
+        "/home/xhjh/wk/xiaobei/xiaobei-backend/dist/backend_client",
+        "/home/xhjh/wk/xiaobei/xiaobei-backend/dist/slamtech_client",
+    ],
+    "todo-tree.tree.showBadges": false
 }
