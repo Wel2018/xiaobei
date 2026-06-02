@@ -1,4 +1,9 @@
 #!/bin/bash
+source ~/.bashrc
+
+waiting....
+sleep 10
+starting...
 
 set -euo pipefail
 

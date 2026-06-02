@@ -1,0 +1,21 @@
+# 1. 所有文本文件：忽略行尾/空白差异，只看真实内容
+* text=auto eol=lf whitespace=cr-at-eol
+
+*.py   text eol=lf
+*.cpp  text eol=lf
+*.h    text eol=lf
+*.hpp  text eol=lf
+*.c    text eol=lf
+*.sh   text eol=lf
+*.bat  text eol=crlf
+
+# 2. 对“经常大小乱变、内容不变”的文件，当作二进制，不显示diff
+# 例子：某些自动生成的json、lock、压缩过的js
+package-lock.json binary
+yarn.lock binary
+*.min.js binary
+*.min.css binary
+dist/*.json binary
+
+# 3. 如果你愿意，也可以给特定文件一个“空diff驱动”，假装没改
+# *.bin diff=noop
