@@ -1,0 +1,37 @@
+#####################################
+# 启动项列表
+# 2026-06-03
+# weikang
+#####################################
+
+items:
+  # 后端服务
+  - xiaobei-backend:
+      scripts:
+        - run
+  
+  # 前端服务
+  - xiaobei-frontend:
+      scripts:
+        - run, 2s
+  
+  # 扩展服务
+  - xiaobei-ext:
+      scripts:
+        - run_ms, 3s  # mediamtx 服务
+        - run, 3s    # xiaobei-ext 服务
+        - run_fall_detector: skip   # 跌倒监测服务
+
+  # 机械臂服务
+  - xiaobei-arm:
+      status: skip
+      scripts:
+        - 1_run_ros   # 睿感机械臂 ros 驱动
+        - 2_run_srv   # ros-uv 通信中间件
+        - 3_run_fastapi   # 机械臂通用接口
+
+  # 面部动画服务
+  - xiaobei-face:
+      status: skip
+      scripts:
+        - run

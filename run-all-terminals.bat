@@ -1,97 +1,107 @@
 @echo off
-setlocal
+setlocal enabledelayedexpansion
+chcp 65001 >nul
 
 set ROOT_DIR=%~dp0
+set CONFIG_FILE=%ROOT_DIR%boot_items.yaml
 
 echo.
 echo ========================================
-echo One-Click Start Xiaobei (2026-06-01)
+echo One-Click Start Xiaobei (2026-06-03)
+echo ========================================
+echo Config: %CONFIG_FILE%
 echo ========================================
 echo.
 
-REM Check run scripts
-if not exist "xiaobei-backend\run.bat" (
-    echo [ERROR] xiaobei-backend\run.bat not found
-    pause
-    exit /b 1
-)
-if not exist "xiaobei-frontend\run.bat" (
-    echo [ERROR] xiaobei-frontend\run.bat not found
-    pause
-    exit /b 1
-)
-if not exist "xiaobei-ext\run.bat" (
-    echo [ERROR] xiaobei-ext\run.bat not found
-    pause
-    exit /b 1
-)
-if not exist "xiaobei-ext\run_ms.bat" (
-    echo [ERROR] xiaobei-ext\run_ms.bat not found
-    pause
-    exit /b 1
-)
-if not exist "xiaobei-ext\run_fall_detector.bat" (
-    echo [WARNING] xiaobei-ext\run_fall_detector.bat not found (optional)
-)
-if not exist "xiaobei-arm\1_run_ros.bat" (
-    echo [ERROR] xiaobei-arm\1_run_ros.bat not found
-    pause
-    exit /b 1
-)
-if not exist "xiaobei-arm\2_run_srv.bat" (
-    echo [ERROR] xiaobei-arm\2_run_srv.bat not found
-    pause
-    exit /b 1
-)
-if not exist "xiaobei-arm\3_run_fastapi.bat" (
-    echo [ERROR] xiaobei-arm\3_run_fastapi.bat not found
-    pause
-    exit /b 1
-)
-if not exist "xiaobei-face\run.bat" (
-    echo [ERROR] xiaobei-face\run.bat not found
+REM Check Python availability
+where python >nul 2>&1
+if errorlevel 1 (
+    echo [ERROR] Python is required to parse YAML config
     pause
     exit /b 1
 )
 
-REM Start services
-echo Starting xiaobei-backend
-start "xiaobei-backend" cmd /k "cd /d %ROOT_DIR%xiaobei-backend && call run.bat"
-timeout /t 1 /nobreak
+REM Check config file exists
+if not exist "%CONFIG_FILE%" (
+    echo [ERROR] Config file not found: %CONFIG_FILE%
+    pause
+    exit /b 1
+)
 
-echo Starting xiaobei-frontend
-start "xiaobei-frontend" cmd /k "cd /d %ROOT_DIR%xiaobei-frontend && call run.bat"
-timeout /t 1 /nobreak
+REM Parse YAML config and generate launch list
+set "temp_file=%TEMP%\xiaobei_launch_list.txt"
 
-echo Starting xiaobei-ext - run_ms
-start "xiaobei-ext - run_ms" cmd /k "cd /d %ROOT_DIR%xiaobei-ext && call run_ms.bat"
-timeout /t 3 /nobreak
+python "%ROOT_DIR%parse_config.py" "%CONFIG_FILE%" "%temp_file%"
+if errorlevel 1 (
+    echo [ERROR] Failed to parse config file
+    pause
+    exit /b 1
+)
 
-echo Starting xiaobei-ext - run
-start "xiaobei-ext - run" cmd /k "cd /d %ROOT_DIR%xiaobei-ext && call run.bat"
-timeout /t 3 /nobreak
+REM Process each line from the launch list
+for /f "usebackq delims=" %%i in ("%temp_file%") do (
+    call :process_line "%%i"
+)
 
-REM echo Starting xiaobei-ext - run_fall_detector
-REM start "xiaobei-ext - run_fall_detector" cmd /k "cd /d %ROOT_DIR%xiaobei-ext && call run_fall_detector.bat"
-timeout /t 1 /nobreak
-
-echo Starting xiaobei-arm - 1_run_ros
-start "xiaobei-arm - 1_run_ros" cmd /k "cd /d %ROOT_DIR%xiaobei-arm && call 1_run_ros.bat"
-timeout /t 15 /nobreak
-
-echo Starting xiaobei-arm - 2_run_srv
-start "xiaobei-arm - 2_run_srv" cmd /k "cd /d %ROOT_DIR%xiaobei-arm && call 2_run_srv.bat"
-timeout /t 3 /nobreak
-
-echo Starting xiaobei-arm - 3_run_fastapi
-start "xiaobei-arm - 3_run_fastapi" cmd /k "cd /d %ROOT_DIR%xiaobei-arm && call 3_run_fastapi.bat"
-timeout /t 3 /nobreak
-
-echo Starting xiaobei-face
-start "xiaobei-face" cmd /k "cd /d %ROOT_DIR%xiaobei-face && call run.bat"
+REM Clean up temp file
+if exist "%temp_file%" del "%temp_file%"
 
 echo.
 echo All services started. Check new terminal windows.
 echo.
 
 endlocal
+exit /b 0
+
+:process_line
+setlocal
+set "input=%~1"
+
+REM Skip empty lines
+if "%input%"=="" (
+    endlocal
+    exit /b 0
+)
+
+REM Parse line data: module|script|wait_time|status
+for /f "tokens=1,2,3,4 delims=|" %%a in ("%input%") do (
+    set "module=%%a"
+    set "script=%%b"
+    set "wait_time=%%c"
+    set "status=%%d"
+)
+
+REM Handle skip
+if "%status%"=="skip" (
+    echo [INFO] Skipped: %module%
+    endlocal
+    exit /b 0
+)
+
+if "%script%"=="__skip__" (
+    endlocal
+    exit /b 0
+)
+
+REM Determine script path
+set "script_path=%ROOT_DIR%%module%\%script%.bat"
+
+REM Check if script exists
+if not exist "%script_path%" (
+    echo [WARNING] Script not found, skipped: %script_path%
+    endlocal
+    exit /b 0
+)
+
+REM Default wait time
+if "%wait_time%"=="" set "wait_time=1"
+
+REM Launch service
+echo Starting %module% - %script% (wait %wait_time%s)
+start "%module% - %script%" cmd /k "cd /d %ROOT_DIR%%module% && call %script%.bat"
+
+REM Wait using ping method (more reliable than timeout in some contexts)
+ping 127.0.0.1 -n %wait_time% -w 1000 >nul 2>&1
+
+endlocal
+exit /b 0

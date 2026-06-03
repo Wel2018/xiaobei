@@ -1,43 +1,31 @@
 #!/bin/bash
 source ~/.bashrc
 
-waiting....
-sleep 10
-starting...
-
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-TERMINAL_CMD=""
+CONFIG_FILE="$ROOT_DIR/boot_items.yaml"
 TERMINAL_TYPE=""
+PARSE_SCRIPT="$ROOT_DIR/parse_config.py"
+TEMP_FILE="/tmp/xiaobei_launch_list.txt"
 
-function try_launch() {
-    local title="$1"
-    local workdir="$2"
-    local script="$3"
-    local cmd="cd \"$workdir\" && bash \"$script\"; exec bash"
-    echo "启动 $1, $2, $3"
+# 检查 Python 是否可用
+if ! command -v python3 &> /dev/null; then
+    echo "[ERROR] 需要 python3 来解析 YAML 配置"
+    exit 1
+fi
 
-    case "$TERMINAL_TYPE" in
-        gnome-terminal)
-            gnome-terminal --title="$title" -- bash -lc "$cmd"
-            ;;
-        xfce4-terminal)
-            xfce4-terminal --title="$title" --hold --command="bash -lc '$cmd'"
-            ;;
-        konsole)
-            konsole --hold -p tabtitle="$title" -e bash -lc "$cmd"
-            ;;
-        xterm)
-            xterm -T "$title" -hold -e bash -lc "$cmd"
-            ;;
-        *)
-            echo "[WARN] 未检测到图形终端，改为在后台运行: $title"
-            (cd "$workdir" && bash "$script") &
-            ;;
-    esac
-}
+# 检查配置文件是否存在
+if [ ! -f "$CONFIG_FILE" ]; then
+    echo "[ERROR] 配置文件不存在: $CONFIG_FILE"
+    exit 1
+fi
+
+# 检查解析脚本是否存在
+if [ ! -f "$PARSE_SCRIPT" ]; then
+    echo "[ERROR] 解析脚本不存在: $PARSE_SCRIPT"
+    exit 1
+fi
 
 function detect_terminal() {
     if command -v gnome-terminal &> /dev/null; then
@@ -59,79 +47,111 @@ function detect_terminal() {
     TERMINAL_TYPE="none"
 }
 
-function check_run_script() {
-    local path="$1"
-    if [ ! -x "$path" ]; then
-        if [ -f "$path" ]; then
-            chmod +x "$path"
-        else
-            echo "[ERROR] 找不到 $path"
-            exit 1
-        fi
-    fi
+function try_launch() {
+    local title="$1"
+    local workdir="$2"
+    local script="$3"
+    local wait_time="${4:-1}"
+    local cmd="cd \"$workdir\" && bash \"$script\"; exec bash"
+    
+    echo "启动: $title (等待 ${wait_time}s)"
+
+    case "$TERMINAL_TYPE" in
+        gnome-terminal)
+            gnome-terminal --title="$title" -- bash -lc "$cmd"
+            ;;
+        xfce4-terminal)
+            xfce4-terminal --title="$title" --hold --command="bash -lc '$cmd'"
+            ;;
+        konsole)
+            konsole --hold -p tabtitle="$title" -e bash -lc "$cmd"
+            ;;
+        xterm)
+            xterm -T "$title" -hold -e bash -lc "$cmd"
+            ;;
+        *)
+            echo "[WARN] 未检测到图形终端，改为在后台运行: $title"
+            (cd "$workdir" && bash "$script") &
+            ;;
+    esac
+    
+    sleep "$wait_time"
 }
 
+function check_run_script() {
+    local path="$1"
+    if [ ! -f "$path" ]; then
+        echo "[ERROR] 找不到 $path"
+        return 1
+    fi
+    if [ ! -x "$path" ]; then
+        chmod +x "$path"
+    fi
+    return 0
+}
+
+# 主流程
 cd "$ROOT_DIR"
-
-# 启动前后端
-check_run_script "xiaobei-backend/run.sh"
-check_run_script "xiaobei-frontend/run.sh"
-
-# 启动扩展服务：流媒体、跌倒检测
-check_run_script "xiaobei-ext/run.sh"
-check_run_script "xiaobei-ext/run_ms.sh"
-check_run_script "xiaobei-ext/run_fall_detector.sh"
-
-# 启动睿感机械臂服务
-check_run_script "xiaobei-arm/1_run_ros.sh"
-check_run_script "xiaobei-arm/2_run_srv.sh"
-check_run_script "xiaobei-arm/3_run_fastapi.sh"
-
-# 启动面部动画
-check_run_script "xiaobei-face/run.sh"
-
 detect_terminal
 
 printf "========================================\n"
-printf "一键启动 xiaobei (2026-05-28) \n"
+printf "一键启动 xiaobei (2026-06-03) \n"
 printf "========================================\n"
 printf "使用终端：%s\n" "$TERMINAL_TYPE"
-#printf "按回车继续..."
-#read -r
+printf "配置文件：%s\n" "$CONFIG_FILE"
+printf "========================================\n\n"
 
-#######################################################################
-# 启动前后端
-try_launch "xiaobei-backend" "$ROOT_DIR/xiaobei-backend" "run.sh"
-sleep 1
-try_launch "xiaobei-frontend" "$ROOT_DIR/xiaobei-frontend" "run.sh"
-sleep 1
+# 使用 Python 解析配置并生成启动列表
+python3 "$PARSE_SCRIPT" "$CONFIG_FILE" "$TEMP_FILE"
+if [ $? -ne 0 ]; then
+    echo "[ERROR] 解析配置文件失败"
+    exit 1
+fi
 
-#######################################################################
-# 启动扩展服务：流媒体、跌倒检测
-try_launch "xiaobei-ext - run_ms" "$ROOT_DIR/xiaobei-ext" "run_ms.sh"  # mediamtx
-sleep 3
-try_launch "xiaobei-ext - run" "$ROOT_DIR/xiaobei-ext" "run.sh"
-sleep 3
-# try_launch "xiaobei-ext - run_fall_detector" "$ROOT_DIR/xiaobei-ext" "run_fall_detector.sh"
-sleep 1
+# 检查临时文件是否存在
+if [ ! -f "$TEMP_FILE" ]; then
+    echo "[ERROR] 未能生成启动列表"
+    exit 1
+fi
 
-#######################################################################
-# 启动睿感机械臂服务
-try_launch "xiaobei-arm - 1_run_ros" "$ROOT_DIR/xiaobei-arm" "1_run_ros.sh"
-sleep 15
-try_launch "xiaobei-arm - 2_run_srv" "$ROOT_DIR/xiaobei-arm" "2_run_srv.sh"
-sleep 3
-try_launch "xiaobei-arm - 3_run_fastapi" "$ROOT_DIR/xiaobei-arm" "3_run_fastapi.sh"
-sleep 3
+# 逐行处理启动项
+while IFS='|' read -r module script wait_time status; do
+    # 跳过空行
+    [ -z "$module" ] && continue
+    
+    # 处理 skip
+    if [ "$status" = "skip" ]; then
+        echo "[INFO] 跳过: $module"
+        continue
+    fi
+    
+    if [ "$script" = "__skip__" ]; then
+        continue
+    fi
+    
+    # 根据平台确定脚本扩展名
+    script_ext=".sh"
+    script_path="$ROOT_DIR/$module/$script$script_ext"
+    
+    # 检查脚本是否存在
+    if ! check_run_script "$script_path"; then
+        echo "[WARNING] 脚本不存在，跳过: $script_path"
+        continue
+    fi
+    
+    # 启动服务
+    try_launch "$module - $script" "$ROOT_DIR/$module" "$script$script_ext" "$wait_time"
+    
+done < "$TEMP_FILE"
 
-#######################################################################
-# 启动面部动画
-try_launch "xiaobei-face" "$ROOT_DIR/xiaobei-face" "run.sh"
+# 清理临时文件
+rm -f "$TEMP_FILE"
 
-#######################################################################
-printf "\n启动完成。\n"
+printf "\n========================================\n"
+printf "启动完成。\n"
 if [ "$TERMINAL_TYPE" = "none" ]; then
     printf "当前系统未检测到可用图形终端，脚本已在后台启动。\n"
 else
     printf "请查看新打开的终端窗口。\n"
 fi
+printf "========================================\n"
