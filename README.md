@@ -1,8 +1,10 @@
 # xiaobei 医院巡检机器人系统
 
+![](doc/newlogo-3.png)
+
 ## 📖 项目简介
 
-xiaobei 是一个智能化的医院巡检机器人系统，专为现代医疗机构设计，能够自主执行病房巡检、患者监护、生命体征采集等任务。该系统集成了先进的机器人技术、计算机视觉、传感器融合和人工智能算法，为医护人员提供高效、准确的辅助服务。
+xiaobei 是一个智能化的医院护士站 **病房巡检机器人系统**，专为现代医疗机构设计，能够自主执行病房巡检、患者监护、生命体征采集等任务。该系统集成了先进的机器人技术、计算机视觉、传感器融合和人工智能算法，为医护人员提供高效、准确的辅助服务。
 
 ## 🏗️ 系统架构
 
@@ -19,13 +21,15 @@ xiaobei/                      # 护士站巡检控制系统
 
 ### 核心组件
 
-| 组件             | 组件名           | 技术栈                        | 主要功能                                                     |
-| ---------------- | ---------------- | ----------------------------- | ------------------------------------------------------------ |
-| **后端服务**     | xiaobei-backend  | FastAPI, Python, SQLite       | 底盘控制、机械臂管理、地图导航、巡检任务、患者信息、生命体征数据、报警记录、传感器集成 |
-| **前端界面**     | xiaobei-frontend | Vue.js, TypeScript, Vite      | 实时监控面板、地图可视化、设备状态监控、巡检任务管理、患者信息展示、报警记录查看、系统设置 |
-| **设备服务**     | xiaobei-ext      | FastAPI, OpenCV, pyrealsense2 | RealSense D455 深度相机、USB 相机管理、视频流传输 (WebSocket)、跌倒检测、输液监测服务集成、消毒灯控制 |
-| **机械臂服务**   | xiaobei-arm      | ROS, Socket                   | 睿感机械臂 ROS 驱动和 Socket 通信中间件                      |
-| **面部表情服务** | xiaobei-face     | PySide6, python-vlc           | 机器人面部表情动画播放                                       |
+[xiaobei 医院巡检机器人系统](https://github.com/wel2018/xiaobei) :
+
+|                                        | 组件名                                                       | 技术栈                                |
+| -------------------------------------- | ------------------------------------------------------------ | ------------------------------------- |
+| [后端服务](xiaobei-backend/README.md)  | [xiaobei-backend](https://github.com/xiaobei-robot/xiaobei-backend) | FastAPI, Python, SQLite               |
+| [前端界面](xiaobei-frontend/README.md) | [xiaobei-frontend](https://github.com/xiaobei-robot/xiaobei-frontend) | Vue.js, TypeScript, Vite, PyWebView   |
+| [扩展服务](xiaobei-ext/README.md)      | [xiaobei-ext](https://github.com/xiaobei-robot/xiaobei-ext)  | FastAPI, OpenCV, WebRTC, pyrealsense2 |
+| [机械臂服务](xiaobei-arm/README.md)    | [xiaobei-arm](https://github.com/xiaobei-robot/xiaobei-arm)  | ROS 2, Socket                         |
+| [面部表情服务](xiaobei-face/README.md) | [xiaobei-face](https://github.com/xiaobei-robot/xiaobei-face) | PySide6, python-vlc                   |
 
 ## 🚀 核心功能
 
@@ -126,42 +130,7 @@ bash run-all-terminals.sh
 .\run-all-terminals.bat
 ```
 
-在 `boot_items.yaml` 可以自定义启动行为：
-
-```yaml
-items:
-  # 后端服务
-  - xiaobei-backend:
-      scripts:
-        - run
-  
-  # 前端服务
-  - xiaobei-frontend:
-      scripts:
-        - run, 2s
-  
-  # 扩展服务
-  - xiaobei-ext:
-      scripts:
-        - run_ms, 3s  # mediamtx 服务
-        - run, 3s    # xiaobei-ext 服务
-        - run_fall_detector: skip   # 跌倒监测服务
-
-  # 机械臂服务
-  - xiaobei-arm:
-      status: skip
-      scripts:
-        - 1_run_ros   # 睿感机械臂 ros 驱动
-        - 2_run_srv   # ros-uv 通信中间件
-        - 3_run_fastapi   # 机械臂通用接口
-
-  # 面部动画服务
-  - xiaobei-face:
-      status: skip
-      scripts:
-        - run
-```
-
+在 [`boot_items.yaml`](boot_items.yaml) 可以自定义启动行为。
 
 
 ## 📈 性能指标
@@ -208,7 +177,7 @@ items:
 
 ## 📞 联系方式
 
-如有问题或建议，请联系开发团队。
+如有问题或建议，请联系开发团队 kwei2021@foxmail.com。
 
 ---
 
