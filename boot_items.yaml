@@ -5,6 +5,11 @@
 #####################################
 
 items:
+  # waiting
+  - xiaobei-wait:
+      scripts:
+        - run, 60s
+
   # 后端服务
   - xiaobei-backend:
       scripts:
@@ -24,14 +29,14 @@ items:
 
   # 机械臂服务
   - xiaobei-arm:
-      status: skip
+      # status: skip
       scripts:
-        - 1_run_ros   # 睿感机械臂 ros 驱动
-        - 2_run_srv   # ros-uv 通信中间件
-        - 3_run_fastapi   # 机械臂通用接口
+        - 1_run_ros, 10s   # 睿感机械臂 ros 驱动
+        - 2_run_srv, 3s   # ros-uv 通信中间件
+        - 3_run_fastapi, 3s   # 机械臂通用接口
 
   # 面部动画服务
   - xiaobei-face:
-      status: skip
+      # status: skip
       scripts:
         - run
