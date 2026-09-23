@@ -9,5 +9,15 @@
         "/home/xhjh/wk/xiaobei/xiaobei-backend/dist/backend_client",
         "/home/xhjh/wk/xiaobei/xiaobei-backend/dist/slamtech_client",
     ],
-    "todo-tree.tree.showBadges": false
+    "todo-tree.tree.showBadges": false,
+    // 文件监听排除：node_modules/.venv 等依赖目录不计入 inotify watch（本机上限 65536）
+    "files.watcherExclude": {
+        "**/node_modules/**": true,
+        "**/.venv/**": true,
+        "**/dist/**": true,
+        "**/__pycache__/**": true,
+        "**/.git/**": true,
+        "**/xiaobei-data/**": true,
+        "**/*.log*": true
+    }
 }
